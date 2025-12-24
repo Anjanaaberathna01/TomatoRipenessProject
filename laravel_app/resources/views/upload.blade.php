@@ -9,30 +9,60 @@
             padding: 40px;
         }
         .container {
-            max-width: 400px;
+            max-width: 420px;
             background: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            background: #e11d48;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #be123c;
         }
         .result {
             margin-top: 20px;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
             display: none;
         }
         .success {
-            background: #e6fffa;
+            background: #ecfdf5;
             color: #065f46;
         }
         .error {
-            background: #ffe6e6;
+            background: #fee2e2;
             color: #7f1d1d;
+        }
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .ripe {
+            background: #dc2626;
+            color: white;
+        }
+        .unripe {
+            background: #16a34a;
+            color: white;
+        }
+        .old {
+            background: #f59e0b;
+            color: white;
         }
         img {
             max-width: 100%;
-            margin-top: 10px;
-            border-radius: 6px;
+            margin-top: 12px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -66,9 +96,9 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     const formData = new FormData(this);
     const resultBox = document.getElementById('resultBox');
 
-    resultBox.style.display = 'none';
-    resultBox.innerHTML = '⏳ Analyzing...';
+    resultBox.style.display = 'block';
     resultBox.className = 'result';
+    resultBox.innerHTML = '⏳ Analyzing...';
 
     const response = await fetch('/analyze', {
         method: 'POST',
@@ -80,14 +110,24 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
 
     const data = await response.json();
 
-    resultBox.style.display = 'block';
+    resultBox.className = 'result';
 
     if (data.status === 'success') {
-        const confidence = (data.result.result.confidence * 100).toFixed(2);
+        const stage = data.ripeness.stage.toLowerCase();
+        const days = data.ripeness.days_to_ripe;
+        const ripeConfidence = Number(data.ripeness.confidence ?? 0) * 100;
+        const detectLabel = data.tomato?.detected ? 'TOMATO' : (data.tomato?.label ?? 'UNKNOWN');
+        const detectConfidence = Number(data.tomato?.confidence ?? 0) * 100;
+
         resultBox.classList.add('success');
         resultBox.innerHTML = `
-            🍅 <strong>Tomato Detected</strong><br>
-            Confidence: <b>${confidence}%</b>
+            <strong>🍅 Tomato Detected</strong><br><br>
+            <div>Detection: <b>${detectLabel}</b> (${detectConfidence.toFixed(2)}%)</div>
+            <div>Ripeness: <span class="badge ${stage}">${data.ripeness.stage}</span></div>
+            <div>Confidence: <b>${ripeConfidence.toFixed(2)}%</b></div>
+            <div>${days !== null ? `Days to ripe: <b>${days}</b>` : ''}</div>
+            <br>
+            <b>${data.message}</b>
         `;
     } else {
         resultBox.classList.add('error');

@@ -8,7 +8,9 @@ class TomatoController extends Controller
 {
     public function analyze(Request $request)
     {
+        // -----------------------------
         // Validate uploaded image
+        // -----------------------------
         $request->validate([
             'image' => 'required|image|mimes:jpg,png,jpeg|max:2048',
         ]);
@@ -19,65 +21,120 @@ class TomatoController extends Controller
         $file = $request->file('image');
         $uploadsDir = storage_path('app/uploads');
 
-        // Create uploads folder if it doesn't exist
         if (!file_exists($uploadsDir)) {
             mkdir($uploadsDir, 0777, true);
         }
 
         $filename = time() . '_' . $file->getClientOriginalName();
-
-        // Move file and get absolute path
         $imagePath = $file->move($uploadsDir, $filename)->getRealPath();
 
-        // Check if file exists
         if (!$imagePath || !file_exists($imagePath)) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Uploaded image file not found at: $imagePath",
-                'result' => null
+                'message' => 'Uploaded image file not found on server',
             ]);
         }
 
         // -----------------------------
-        // Python command
+        // Python paths
         // -----------------------------
         $pythonPath = "E:/TomatoRipenessProject/.venv/Scripts/python.exe";
-        $scriptPath = "E:/TomatoRipenessProject/tomato_ai/predict.py";
 
-        $command = escapeshellarg($pythonPath) . ' ' .
-                   escapeshellarg($scriptPath) . ' ' .
-                   escapeshellarg($imagePath);
+        $tomatoDetectScript = "E:/TomatoRipenessProject/tomato_ai/predict.py";
+        $ripenessScript     = "E:/TomatoRipenessProject/tomato_ai/predict_ripeness.py";
 
-        // Execute Python script
-        $output = trim(shell_exec($command));
+        // -----------------------------
+        // STEP 1: Tomato detection
+        // -----------------------------
+        $cmdDetect = escapeshellarg($pythonPath) . ' ' .
+                     escapeshellarg($tomatoDetectScript) . ' ' .
+                     escapeshellarg($imagePath);
 
-        // Decode JSON response from Python
-        $result = json_decode($output, true);
+        $detectOutput = trim(shell_exec($cmdDetect));
+        $detectResult = json_decode($detectOutput, true);
 
-        if (!$result || $result['status'] === 'error') {
+        if (!$detectResult || $detectResult['status'] !== 'success') {
             return response()->json([
                 'status' => 'error',
-                'message' => $result['message'] ?? 'Failed to analyze image',
-                'result' => $output
+                'message' => 'Failed to detect tomato',
+                'debug' => $detectOutput
             ]);
         }
 
-        // Check prediction label
-        $label = $result['result']['label'] ?? 'UNKNOWN';
+        $label = $detectResult['result']['label'] ?? 'UNKNOWN';
 
-        if ($label === 'NOT_TOMATO' || $label === 'UNCERTAIN') {
+        if ($label !== 'TOMATO') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'This image is not a tomato',
-                'result' => $result
+                'result' => $detectResult
             ]);
         }
 
-        // Tomato detected
+        // -----------------------------
+        // STEP 2: Ripeness detection
+        // -----------------------------
+        $cmdRipeness = escapeshellarg($pythonPath) . ' ' .
+                       escapeshellarg($ripenessScript) . ' ' .
+                       escapeshellarg($imagePath);
+
+        $ripenessOutput = trim(shell_exec($cmdRipeness));
+        $ripenessResult = json_decode($ripenessOutput, true);
+
+        // DEBUG: Log the raw output
+        if (!$ripenessResult || $ripenessResult['status'] !== 'success') {
+            \Log::error('Ripeness prediction failed', [
+                'output' => $ripenessOutput,
+                'json_error' => json_last_error_msg()
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to detect ripeness',
+                'debug' => $ripenessOutput
+            ]);
+        }
+
+        // -----------------------------
+        // Interpret ripeness result
+        // -----------------------------
+        $stage = strtolower($ripenessResult['stage'] ?? 'unknown');
+
+        switch ($stage) {
+            case 'unripe':
+                $message = 'Tomato is unripe. Wait about 4 days.';
+                $days = 4;
+                break;
+
+            case 'old':
+                $message = 'Tomato is turning. Use within 1–2 days.';
+                $days = 0;
+                break;
+
+            case 'ripe':
+                $message = 'Tomato is ripe and ready to eat.';
+                $days = 1;
+                break;
+
+            default:
+                $message = 'Unable to determine tomato ripeness.';
+                $days = null;
+        }
+
+        // -----------------------------
+        // FINAL RESPONSE
+        // -----------------------------
         return response()->json([
             'status' => 'success',
-            'message' => 'Tomato detected',
-            'result' => $result
+            'message' => $message,
+            'tomato' => [
+                'detected' => true,
+                'confidence' => $detectResult['result']['confidence'] ?? null
+            ],
+            'ripeness' => [
+                'stage' => strtoupper($stage),
+                'days_to_ripe' => $days,
+                'confidence' => $ripenessResult['confidence'] ?? null
+            ]
         ]);
     }
 }
