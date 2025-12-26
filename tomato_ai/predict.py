@@ -79,8 +79,8 @@ prediction = model.predict(img, verbose=0)[0][0]
 # -----------------------------
 # DECIDE LABEL
 # -----------------------------
-TOMATO_THRESHOLD = 0.9
-NOT_TOMATO_THRESHOLD = 0.3
+TOMATO_THRESHOLD = 0.6
+NOT_TOMATO_THRESHOLD = 0.2
 
 if prediction >= TOMATO_THRESHOLD:
     label = "TOMATO"

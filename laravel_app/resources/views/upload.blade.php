@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    @include('nav_bar.nav')
     <title>Tomato Analyzer</title>
     <style>
         body {
@@ -68,6 +69,7 @@
 </head>
 <body>
 
+
 <div class="container">
     <h2>🍅 Tomato Analyzer</h2>
 
@@ -131,8 +133,12 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         `;
     } else {
         resultBox.classList.add('error');
+        const errDetect = data?.result?.result;
+        const errLabel = errDetect?.label ?? 'UNKNOWN';
+        const errConf = Number(errDetect?.confidence ?? 0) * 100;
         resultBox.innerHTML = `
             ❌ <strong>${data.message}</strong>
+            ${errDetect ? `<div>Detection: <b>${errLabel}</b> (${errConf.toFixed(2)}%)</div>` : ''}
         `;
     }
 });

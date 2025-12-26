@@ -62,13 +62,18 @@ class TomatoController extends Controller
         }
 
         $label = $detectResult['result']['label'] ?? 'UNKNOWN';
+        $detConf = $detectResult['result']['confidence'] ?? null;
 
+        // Accept TOMATO outright, or UNCERTAIN with mid confidence
         if ($label !== 'TOMATO') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'This image is not a tomato',
-                'result' => $detectResult
-            ]);
+            $isBorderlineTomato = ($label === 'UNCERTAIN') && is_numeric($detConf) && ($detConf >= 0.5);
+            if (!$isBorderlineTomato) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'This image is not a tomato',
+                    'result' => $detectResult
+                ]);
+            }
         }
 
         // -----------------------------
@@ -128,7 +133,8 @@ class TomatoController extends Controller
             'message' => $message,
             'tomato' => [
                 'detected' => true,
-                'confidence' => $detectResult['result']['confidence'] ?? null
+                'confidence' => $detectResult['result']['confidence'] ?? null,
+                'label' => $label
             ],
             'ripeness' => [
                 'stage' => strtoupper($stage),
