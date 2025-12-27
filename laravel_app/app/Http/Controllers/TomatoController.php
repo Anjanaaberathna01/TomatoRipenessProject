@@ -111,7 +111,7 @@ class TomatoController extends Controller
                 break;
 
             case 'old':
-                $message = 'Tomato is turning. Use within 1–2 days.';
+                $message = 'Tomato is old. It may be overripe.';
                 $days = 0;
                 break;
 
