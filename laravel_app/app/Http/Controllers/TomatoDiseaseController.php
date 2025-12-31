@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class TomatoDiseaseController extends Controller
 {
@@ -13,83 +15,110 @@ class TomatoDiseaseController extends Controller
 
     public function diagnose(Request $request)
     {
-        // -----------------------------
-        // Validate image
-        // -----------------------------
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
-        // -----------------------------
-        // Save image
-        // -----------------------------
-        // Save image to public disk, not default local (which goes to private/)
-        $imagePath = $request->file('image')
-            ->store('uploads', 'public');
-
-        // Build path directly: storage/app/public/uploads/filename
-        $fullPath = storage_path('app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $imagePath));
-
-        if (!file_exists($fullPath)) {
-            return back()->withErrors('Uploaded file not found at: ' . $fullPath);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
         }
 
-        // -----------------------------
-        // Python config
-        // -----------------------------
+        $imagePath = $request->file('image')->store('uploads', 'public');
+
+        $fullPath = storage_path(
+            'app' . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $imagePath)
+        );
+
+        if (!file_exists($fullPath)) {
+            Log::error('Uploaded file not found', ['path' => $fullPath]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Uploaded file not found. Please retry.',
+            ], 500);
+        }
+
         $python = "E:\\TomatoRipenessProject\\.venv\\Scripts\\python.exe";
 
+        $leafCheckScript    = "E:\\TomatoRipenessProject\\tomato_ai\\predict_leaf_check.py";
         $diseaseCheckScript = "E:\\TomatoRipenessProject\\tomato_ai\\predict_disease_check.py";
         $diseaseTypeScript  = "E:\\TomatoRipenessProject\\tomato_ai\\predict_disease.py";
 
-        // -----------------------------
-        // STEP 1: Healthy vs Diseased
-        // -----------------------------
-        $cmdCheck = '"' . $python . '" "' . $diseaseCheckScript . '" "' . $fullPath . '" 2>NUL';
+        $runScript = static function (string $scriptPath, string $step) use ($python, $fullPath) {
+            $cmd = '"' . $python . '" "' . $scriptPath . '" "' . $fullPath . '" 2>NUL';
+            $raw = trim(shell_exec($cmd) ?? '');
 
-        $outputCheck = trim(shell_exec($cmdCheck) ?? '');
-        // Extract JSON object from mixed STDERR/STDOUT to be robust
-        $jsonCheck = '';
-        if (preg_match('/\{.*\}/s', $outputCheck, $m)) {
-            $jsonCheck = $m[0];
+            $json = '';
+            if (preg_match('/\{.*\}/s', $raw, $matches)) {
+                $json = $matches[0];
+            }
+
+            $parsed = $json ? json_decode($json, true) : null;
+            if (!$parsed || ($parsed['status'] ?? '') !== 'success') {
+                $snippet = $raw ? substr($raw, 0, 400) : 'no output';
+                Log::error($step . ' failed', ['output' => $raw, 'file' => $fullPath]);
+                return [null, $step . ' failed. ' . ($parsed['message'] ?? $snippet)];
+            }
+
+            return [$parsed, null];
+        };
+
+        // Step 0: verify the photo is a tomato leaf
+        [$leafResult, $leafError] = $runScript($leafCheckScript, 'Tomato leaf check');
+        if ($leafError) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $leafError,
+            ], 500);
         }
-        $checkResult = $jsonCheck ? json_decode($jsonCheck, true) : null;
 
-        if (!$checkResult || $checkResult['status'] !== 'success') {
-            $snippet = $outputCheck ? substr($outputCheck, 0, 400) : 'no output';
-            \Log::error('Disease check failed', ['output' => $outputCheck, 'file' => $fullPath]);
-            return back()->withErrors('Disease check failed. Error: ' . ($checkResult['message'] ?? $snippet));
+        if (($leafResult['label'] ?? '') !== 'TOMATO_LEAF') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Please upload a tomato leaf photo.',
+                'details' => $leafResult,
+            ], 422);
         }
 
-        if ($checkResult['label'] === 'HEALTHY') {
-            return back()->with('result', [
-                'status' => 'Healthy',
-                'message' => 'The tomato leaf is healthy 🌱'
+        // Step 1: Healthy vs Diseased
+        [$checkResult, $checkError] = $runScript($diseaseCheckScript, 'Disease health check');
+        if ($checkError) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $checkError,
+            ], 500);
+        }
+
+        if (strtoupper($checkResult['label'] ?? '') === 'HEALTHY') {
+            return response()->json([
+                'status' => 'success',
+                'result' => [
+                    'status' => 'Healthy',
+                    'message' => 'The tomato leaf is healthy.',
+                ],
             ]);
         }
 
-        // -----------------------------
-        // STEP 2: Disease type
-        // -----------------------------
-        $cmdDisease = '"' . $python . '" "' . $diseaseTypeScript . '" "' . $fullPath . '" 2>NUL';
-
-        $outputDisease = trim(shell_exec($cmdDisease) ?? '');
-        $jsonDisease = '';
-        if (preg_match('/\{.*\}/s', $outputDisease, $m2)) {
-            $jsonDisease = $m2[0];
-        }
-        $diseaseResult = $jsonDisease ? json_decode($jsonDisease, true) : null;
-
-        if (!$diseaseResult || $diseaseResult['status'] !== 'success') {
-            $snippet = $outputDisease ? substr($outputDisease, 0, 400) : 'no output';
-            \Log::error('Disease classification failed', ['output' => $outputDisease, 'file' => $fullPath]);
-            return back()->withErrors('Disease classification failed. Error: ' . ($diseaseResult['message'] ?? $snippet));
+        // Step 2: Disease type
+        [$diseaseResult, $diseaseError] = $runScript($diseaseTypeScript, 'Disease classification');
+        if ($diseaseError) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $diseaseError,
+            ], 500);
         }
 
-        return back()->with('result', [
-            'status' => 'Diseased',
-            'disease' => ucfirst(str_replace('_', ' ', $diseaseResult['disease'])),
-            'confidence' => round($diseaseResult['confidence'] * 100, 2)
+        return response()->json([
+            'status' => 'success',
+            'result' => [
+                'status' => 'Diseased',
+                'disease' => isset($diseaseResult['disease'])
+                    ? ucfirst(str_replace('_', ' ', $diseaseResult['disease']))
+                    : 'Unknown',
+                'confidence' => $diseaseResult['confidence'] ?? null,
+            ],
         ]);
     }
 }

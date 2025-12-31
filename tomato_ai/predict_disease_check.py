@@ -45,6 +45,7 @@ img = cast(np.ndarray, img)
 classes = sorted([
     "Tomato___Bacterial_spot",
     "Tomato___Early_blight",
+    "Tomato___healthy",
     "Tomato___Late_blight",
     "Tomato___Leaf_Mold",
     "Tomato___Septoria_leaf_spot",

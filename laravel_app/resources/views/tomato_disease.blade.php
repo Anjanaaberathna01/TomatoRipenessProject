@@ -279,50 +279,58 @@ diagnosisForm.addEventListener('submit', async (e) => {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+                'Accept': 'application/json'
             }
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (err) {
+            setResult('❌ Unable to read server response.', 'error');
+            return;
+        }
 
-        if (data.status === 'success') {
-            const status = data.result?.status ?? 'UNKNOWN';
-            const isHealthy = status.toLowerCase() === 'healthy';
-            const badgeClass = isHealthy ? 'healthy' : 'diseased';
-            const statusIcon = isHealthy ? '🌱' : '⚠️';
+        if (!response.ok || data.status !== 'success') {
+            setResult(`❌ <strong>${data.message ?? 'Analysis failed'}</strong>`, 'error');
+            return;
+        }
 
-            let resultHTML = `
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-                    <span class="status-icon">${statusIcon}</span>
-                    <div>
-                        <strong style="font-size: 1.1rem;">Status: ${status}</strong>
-                        <div class="badge ${badgeClass}" style="margin-top: 6px;">${status}</div>
+        const status = data.result?.status ?? 'UNKNOWN';
+        const isHealthy = status.toLowerCase() === 'healthy';
+        const badgeClass = isHealthy ? 'healthy' : 'diseased';
+        const statusIcon = isHealthy ? '🌱' : '⚠️';
+
+        let resultHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <span class="status-icon">${statusIcon}</span>
+                <div>
+                    <strong style="font-size: 1.1rem;">Status: ${status}</strong>
+                    <div class="badge ${badgeClass}" style="margin-top: 6px;">${status}</div>
+                </div>
+            </div>
+        `;
+
+        if (data.result?.disease) {
+            const confidencePct = Math.min(100, Math.max(0, Number(data.result?.confidence ?? 0) * 100));
+            resultHTML += `
+                <div class="result-grid">
+                    <div class="result-item">
+                        <h4>Disease Type</h4>
+                        <p>${data.result.disease}</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Confidence</h4>
+                        <p>${confidencePct.toFixed(2)}%</p>
                     </div>
                 </div>
             `;
-
-            if (data.result?.disease) {
-                const confidence = Number(data.result?.confidence ?? 0) * 100;
-                resultHTML += `
-                    <div class="result-grid">
-                        <div class="result-item">
-                            <h4>Disease Type</h4>
-                            <p>${data.result.disease}</p>
-                        </div>
-                        <div class="result-item">
-                            <h4>Confidence</h4>
-                            <p>${confidence.toFixed(2)}%</p>
-                        </div>
-                    </div>
-                `;
-            } else if (data.result?.message) {
-                resultHTML += `<p style="margin: 0; font-weight: 600;">${data.result.message}</p>`;
-            }
-
-            setResult(resultHTML, 'success');
-        } else {
-            setResult(`❌ <strong>${data.message ?? 'Analysis failed'}</strong>`, 'error');
+        } else if (data.result?.message) {
+            resultHTML += `<p style="margin: 0; font-weight: 600;">${data.result.message}</p>`;
         }
+
+        setResult(resultHTML, 'success');
     } catch (error) {
         setResult('❌ Something went wrong. Please try again.', 'error');
     }

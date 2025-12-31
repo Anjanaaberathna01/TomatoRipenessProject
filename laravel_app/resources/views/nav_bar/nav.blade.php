@@ -102,7 +102,7 @@
         </button>
 
         <div class="nav-items" id="navItems">
-            <a href="#" class="nav-link">Home</a>
+            <a href="{{ url('/') }}" class="nav-link">Home</a>
             <a href="#" class="nav-link">Upload Image</a>
             <a href="#" class="nav-link">Browse Diseases</a>
             <a href="#" class="nav-link">About Us</a>
