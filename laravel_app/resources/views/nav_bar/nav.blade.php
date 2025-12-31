@@ -103,9 +103,9 @@
 
         <div class="nav-items" id="navItems">
             <a href="{{ url('/') }}" class="nav-link">Home</a>
-            <a href="#" class="nav-link">Upload Image</a>
-            <a href="#" class="nav-link">Browse Diseases</a>
-            <a href="#" class="nav-link">About Us</a>
+            <a href="{{ route('upload') }}" class="nav-link">Upload Image</a>
+            <a href="{{ route('browse_disease') }}" class="nav-link">Browse Diseases</a>
+            <a href="{{ route('about_us') }}" class="nav-link">About Us</a>
             @auth
                 <a href="{{ url('/dashboard') }}" class="login-btn">Dashboard</a>
             @else

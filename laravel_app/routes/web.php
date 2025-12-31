@@ -29,6 +29,21 @@ Route::get('/tomato/diagnose', function () {
 
 Route::post('/tomato/diagnose', [TomatoDiseaseController::class, 'diagnose'])->name('tomato.diagnose');
 
+// 2.2 Browse Diseases Page
+Route::get('/browse-diseases', function () {
+    return view('Browse_Disease');
+})->name('browse_disease');
+
+// 2.3 Learn & Prevent Page
+Route::get('/learn-prevent', function () {
+    return view('Learn_Prevent');
+})->name('learn_prevent');
+
+// 2.4 About Us Page
+Route::get('/about-us', function () {
+    return view('about_us');
+})->name('about_us');
+
 // 3. Search Route (For the navbar search)
 Route::get('/search', function () {
     $query = request('query');
