@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+venv/
+ENV/
+env/
+
+# TensorFlow / Keras
+*.h5
+*.hdf5
+*.pb
+saved_model/
+checkpoints/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Laravel
+laravel_app/vendor/
+laravel_app/node_modules/
+laravel_app/.env
+laravel_app/.env.backup
+laravel_app/.phpunit.result.cache
+laravel_app/Homestead.json
+laravel_app/Homestead.yaml
+laravel_app/npm-debug.log
+laravel_app/yarn-error.log
+laravel_app/storage/*.key
+laravel_app/storage/debugbar/
+laravel_app/public/storage
+laravel_app/public/hot
+
+# Storage
+laravel_app/storage/app/*
+!laravel_app/storage/app/.gitignore
+!laravel_app/storage/app/public/
+!laravel_app/storage/app/tomato_dataset/
+laravel_app/storage/framework/cache/*
+!laravel_app/storage/framework/cache/.gitignore
+laravel_app/storage/framework/sessions/*
+!laravel_app/storage/framework/sessions/.gitignore
+laravel_app/storage/framework/testing/*
+!laravel_app/storage/framework/testing/.gitignore
+laravel_app/storage/framework/views/*
+!laravel_app/storage/framework/views/.gitignore
+laravel_app/storage/logs/*
+!laravel_app/storage/logs/.gitignore
+
+# Composer
+laravel_app/composer.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Uploaded Images
+laravel_app/storage/app/uploads/*
+!laravel_app/storage/app/uploads/.gitignore
+
+# Test files
+test_images/
+*.jpg
+*.jpeg
+*.png
+*.gif
+!laravel_app/public/images/**/*.jpg
+!laravel_app/public/images/**/*.png
+!laravel_app/public/logo/**/*.png
+
+# Logs
+*.log
+
+# Database
+*.sqlite
+*.sqlite-journal
+
+# Cache
+laravel_app/bootstrap/cache/*
+!laravel_app/bootstrap/cache/.gitignore

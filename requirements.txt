@@ -1,0 +1,23 @@
+# Python Requirements for Tomato Health Monitor
+
+# Core Dependencies
+tensorflow>=2.10.0
+keras>=2.10.0
+numpy>=1.23.0
+opencv-python>=4.6.0
+Pillow>=9.2.0
+
+# Optional but recommended
+matplotlib>=3.5.0
+scikit-learn>=1.1.0
+pandas>=1.4.0
+
+# For model training
+h5py>=3.7.0
+
+# Image processing
+opencv-contrib-python>=4.6.0
+
+# Development
+ipython>=8.4.0
+jupyter>=1.0.0
