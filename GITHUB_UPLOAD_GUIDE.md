@@ -32,11 +32,9 @@ git commit -m "Initial commit: Tomato Health Monitor with disease detection and 
 
 ### 3. Connect to GitHub Repository
 
-Replace `yourusername` with your GitHub username:
-
 ```bash
 # Add remote origin
-git remote add origin https://github.com/yourusername/TomatoHealthMonitor.git
+git remote add origin https://github.com/Anjanaaberathna01/TomatoRipenessProject.git
 
 # Verify remote was added
 git remote -v
@@ -102,21 +100,16 @@ git push
 
 ## 🔄 Update Your README
 
-Before pushing, update these in `README.md`:
+✅ **Already Updated!** The README.md has been configured with:
 
-1. **Repository URL**:
-
-   - Replace `https://github.com/yourusername/TomatoRipenessProject`
-   - With your actual GitHub URL
+1. **Repository URL**: `https://github.com/Anjanaaberathna01/TomatoRipenessProject`
 
 2. **Contact Information**:
 
-   ```markdown
-   - **Email**: your.email@example.com
-   - **GitHub**: [@yourusername](https://github.com/yourusername)
-   ```
+   - **Email**: anjanaaberathna01@gmail.com
+   - **GitHub**: [@Anjanaaberathna01](https://github.com/Anjanaaberathna01)
 
-3. **Badge URLs**: Update all badge URLs with your username
+3. **Badge URLs**: All badges updated with correct username
 
 ---
 

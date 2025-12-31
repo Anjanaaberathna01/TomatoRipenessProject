@@ -130,7 +130,7 @@ A comprehensive web application that uses deep learning to detect tomato plant d
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/TomatoRipenessProject.git
+git clone https://github.com/Anjanaaberathna01/TomatoRipenessProject.git
 cd TomatoRipenessProject
 ```
 
@@ -531,7 +531,7 @@ SOFTWARE.
 
 ## 👥 Authors
 
-- **Your Name** - _Initial work_ - [YourGitHub](https://github.com/yourusername)
+- **Anjana Aberathna** - _Initial work_ - [Anjanaaberathna01](https://github.com/Anjanaaberathna01)
 
 ---
 
@@ -547,9 +547,9 @@ SOFTWARE.
 
 ## 📧 Contact
 
-- **Project Link**: https://github.com/yourusername/TomatoRipenessProject
-- **Email**: your.email@example.com
-- **Website**: https://yourwebsite.com
+- **Project Link**: https://github.com/Anjanaaberathna01/TomatoRipenessProject
+- **Email**: anjanaaberathna01@gmail.com
+- **GitHub**: [@Anjanaaberathna01](https://github.com/Anjanaaberathna01)
 
 ---
 
@@ -561,10 +561,10 @@ If you find this project helpful, please consider giving it a star ⭐
 
 ## 📊 Project Stats
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/TomatoRipenessProject)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/TomatoRipenessProject)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/TomatoRipenessProject)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/TomatoRipenessProject)
+![GitHub stars](https://img.shields.io/github/stars/Anjanaaberathna01/TomatoRipenessProject)
+![GitHub forks](https://img.shields.io/github/forks/Anjanaaberathna01/TomatoRipenessProject)
+![GitHub issues](https://img.shields.io/github/issues/Anjanaaberathna01/TomatoRipenessProject)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Anjanaaberathna01/TomatoRipenessProject)
 
 ---
 
